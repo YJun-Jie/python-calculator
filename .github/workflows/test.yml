@@ -1,4 +1,4 @@
-name: Test Workflow
+name: Build and Test
 
 on:
   push:
@@ -19,6 +19,15 @@ jobs:
         with:
           python-version: '3.11'
       
+      # Cache pip dependencies
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
       - name: Install flake8
         run: pip install flake8
       
@@ -28,6 +37,11 @@ jobs:
   test:
     needs: lint
     runs-on: ${{ matrix.os }}
+    
+    # Set environment variables for the entire job
+    env:
+      DEBUG_MODE: 'true'
+      DATABASE_URL: 'sqlite:///test.db'
     
     strategy:
       matrix:
@@ -59,15 +73,31 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       
+      # Cache pip dependencies
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      # Run tests with secrets
       - name: Run pytest
-        run: pytest -v -m "not slow"
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        run: pytest -v
 
       - name: Run tests with coverage
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
         run: pytest -v --cov=calculator --cov-report=term-missing
 
       - name: Upload coverage artifact
@@ -75,6 +105,7 @@ jobs:
         with:
           name: coverage-report-${{ matrix.os }}-${{ matrix.python-version }}
           path: .coverage
+          retention-days: 7
 
   test-scenarios:
     name: Test ${{ matrix.scenario.name }}
@@ -98,6 +129,15 @@ jobs:
         with:
           python-version: '3.11'
       
+      # Cache pip dependencies
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
@@ -116,6 +156,19 @@ jobs:
       success()
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Download the artifact from the test job
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-report-*
+          merge-multiple: true
+      
+      - name: Display downloaded files
+        run: ls -la
+      
       - name: Simulate deployment
         run: |
           echo "Deploying to production..."
