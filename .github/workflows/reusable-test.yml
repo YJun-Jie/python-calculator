@@ -23,6 +23,7 @@ on:
 
 jobs:
   test:
+    needs: lint
     name: Run Tests
     runs-on: ubuntu-latest
     outputs:
