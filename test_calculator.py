@@ -21,6 +21,7 @@ def test_multiply():
     assert multiply(-2, 3) == -6
     assert multiply(0, 5) == 0
 
+
 def test_divide():
     """Test division function."""
     assert divide(8, 2) == 4
@@ -29,9 +30,9 @@ def test_divide():
 
 
 def test_divide_by_zero():
-        """Test that dividing by zero raises an error."""
-        with pytest.raises(ValueError):
-            divide(10, 0)
+    """Test that dividing by zero raises an error."""
+    with pytest.raises(ValueError):
+        divide(10, 0)
 
 
 def test_power():
