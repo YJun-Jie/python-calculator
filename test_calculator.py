@@ -27,11 +27,13 @@ def test_divide():
     assert divide(9, 3) == 3
     assert divide(-10, 2) == -5
 
+
 def test_divide_by_zero():
-    """Test that dividing by zero raises an error."""
-    with pytest.raises(ValueError):
-        divide(10, 0)
-        
+        """Test that dividing by zero raises an error."""
+        with pytest.raises(ValueError):
+            divide(10, 0)
+
+
 def test_power():
     """Test power function."""
     assert power(2, 3) == 8
